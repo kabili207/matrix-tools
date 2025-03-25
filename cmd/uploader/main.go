@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"image"
@@ -9,6 +10,7 @@ import (
 	_ "image/jpeg"
 	_ "image/png"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,15 +25,26 @@ import (
 	"rsc.io/getopt"
 )
 
+func pathIsDir(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err == nil {
+		return fi.IsDir(), nil
+	}
+	if errors.Is(err, fs.ErrNotExist) {
+		return false, nil
+	}
+	return false, err
+}
+
 func main() {
 
 	serverPtr := flag.String("server", "", "the server URL")
 	getopt.Alias("s", "server")
 
-	pathPtr := flag.String("path", "", "the server URL")
+	pathPtr := flag.String("path", "", "path of the emoji to upload")
 	getopt.Alias("p", "path")
 
-	roomPtr := flag.String("room", "", "to room ID")
+	roomPtr := flag.String("room", "", "room ID")
 	getopt.Alias("r", "room")
 
 	namePtr := flag.String("name", "", "name of the emoji pack")
@@ -41,18 +54,57 @@ func main() {
 
 	getopt.Parse()
 
-	if authPtr == nil {
+	paramError := false
+
+	if serverPtr == nil || *serverPtr == "" {
+		// TODO: Prompt user for server URL instead
+		fmt.Fprintln(os.Stderr, "Homeserver URL is required")
+		paramError = true
+	} else if _, err := url.ParseRequestURI(*serverPtr); err != nil {
+		fmt.Fprintln(os.Stderr, "Not a valid homeserver URL\n\tMust be a full URL such as https://example.com:8443")
+		paramError = true
+	}
+
+	if authPtr == nil || *authPtr == "" {
 		if env, ok := os.LookupEnv("SYNAPSE_AUTH_TOKEN"); ok {
 			authPtr = &env
+		} else {
+			// TODO: Prompt user for credentials instead
+			fmt.Fprintln(os.Stderr, "Auth token required. Please pass the --auth parameter or set the SYNAPSE_AUTH_TOKEN environment variable")
+			paramError = true
 		}
 	}
 
-	fmt.Println("word:", *serverPtr)
-	fmt.Println("numb:", *pathPtr)
-	fmt.Println("room:", *roomPtr)
-	fmt.Println("name:", *namePtr)
-	fmt.Println("auth:", *authPtr)
-	fmt.Println("tail:", flag.Args())
+	if roomPtr == nil || *roomPtr == "" {
+		// TODO: Prompt user for room ID instead
+		fmt.Fprintln(os.Stderr, "Room ID is required")
+		paramError = true
+	} else if !strings.HasPrefix(*roomPtr, "!") {
+		fmt.Fprintf(os.Stderr, "Invalid room ID: %s\n", *roomPtr)
+		if strings.HasPrefix(*roomPtr, "\\") {
+			fmt.Fprintln(os.Stderr, "\tDid you escape the '!' properly? Many shells are very picky about the '!' character")
+		}
+		paramError = true
+	}
+
+	if namePtr == nil || *namePtr == "" {
+		// TODO: Prompt user for pack name instead
+		fmt.Fprintln(os.Stderr, "Pack name is required")
+		paramError = true
+	}
+
+	if pathPtr == nil || *pathPtr == "" {
+		// TODO: Prompt user for pack name instead
+		fmt.Fprintln(os.Stderr, "Path to emoji is required")
+		paramError = true
+	} else if ok, err := pathIsDir(*pathPtr); !ok || err != nil {
+		fmt.Fprintln(os.Stderr, "Invalid path")
+		paramError = true
+	}
+
+	if paramError {
+		return
+	}
 
 	mtxClient := api.NewMatrixClient(*serverPtr, *authPtr)
 
@@ -62,17 +114,6 @@ func main() {
 
 	if err != nil {
 		fmt.Println("Error fetching emote pack:", err)
-		return
-	}
-
-	fi, err := os.Stat(*pathPtr)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if !fi.IsDir() {
-		fmt.Println("Path is not a directory")
 		return
 	}
 
