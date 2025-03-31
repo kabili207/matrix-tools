@@ -15,16 +15,16 @@ jobs:
     strategy:
       matrix:
         platform:
-          - os: ubuntu-latest
-            name: linux
+          - name: linux
             arch: x64
+            os: ubuntu-latest
           # Still in preview, need specific version
-          - os: ubuntu-24.04-arm
-            name: linux
+          - name: linux
             arch: arm64
-          - os: windows-latest
-            name: windows
+            os: ubuntu-24.04-arm
+          - name: windows
             arch: x64
+            os: windows-latest
 
     runs-on: ${{ matrix.platform.os }}
     steps:
@@ -46,4 +46,4 @@ jobs:
       with:
         name: matrix-tools-${{ matrix.platform.name }}-${{ matrix.platform.arch }}
         path: build/*
-        retention-days: 30
+        retention-days: 90
