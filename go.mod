@@ -1,4 +1,4 @@
-module github.com/kabili207/matrixemoji
+module github.com/kabili207/matrix-tools
 
 go 1.23.4
 

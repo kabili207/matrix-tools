@@ -1,0 +1,5 @@
+# We keep a lot of test options in here for ease of development
+.vscode/launch.json
+
+# build artifacts
+build/**

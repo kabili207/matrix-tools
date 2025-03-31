@@ -27,9 +27,16 @@ jobs:
     - name: Test
       run: go test -v ./...
 
-    - name: 'Upload Artifact'
+    - name: 'Upload Artifact - Uploader'
       uses: actions/upload-artifact@v4
       with:
         name: matrix-emoji-uploader
-        path: build/uploader
-        retention-days: 5
+        path: build/emoji-uploader
+        retention-days: 30
+
+    - name: 'Upload Artifact - Mass Delete'
+      uses: actions/upload-artifact@v4
+      with:
+        name: matrix-mass-delete
+        path: build/mass-delete
+        retention-days: 30

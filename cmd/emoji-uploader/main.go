@@ -16,8 +16,8 @@ import (
 	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
-	"github.com/kabili207/matrixemoji/pkg/api"
-	"github.com/kabili207/matrixemoji/pkg/models"
+	"github.com/kabili207/matrix-tools/pkg/api"
+	"github.com/kabili207/matrix-tools/pkg/models"
 	"github.com/sapphi-red/midec"
 	_ "github.com/sapphi-red/midec/gif"  // import this to detect Animated GIF
 	_ "github.com/sapphi-red/midec/png"  // import this to detect APNG

@@ -24,3 +24,16 @@ type PackImageInfo struct {
 	Width    *int   `json:"w,omitempty"`
 	Height   *int   `json:"h,omitempty"`
 }
+
+type MessageResponse struct {
+	Chunk []ClientEvent `json:"chunk"`
+	End   string        `json:"end,omitempty"`
+	Start string        `json:"start,omitempty"`
+}
+
+type ClientEvent struct {
+	RoomId    string         `json:"room_id"`
+	EventId   string         `json:"event_id"`
+	EventType string         `json:"type"`
+	Content   map[string]any `json:"content,omitempty"`
+}
